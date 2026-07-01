@@ -35,8 +35,6 @@ Add this repo as a Claude Code plugin marketplace, then install the plugin:
 
 Then restart the session and run `/agy:setup`.
 
-(For local development, point `marketplace add` at your local checkout path instead of the GitHub slug.)
-
 ## Configuration (env)
 
 - `AGY_BIN` — path to the `agy` binary (default: `agy` on `PATH`, then `~/.local/bin`, `/usr/local/bin`, `/opt/homebrew/bin`).
