@@ -35,12 +35,13 @@ Add this repo as a Claude Code plugin marketplace, then install the plugin:
 
 Then restart the session and run `/agy:setup`.
 
-## Configuration (env)
+## Configuration
 
-- `AGY_BIN` — path to the `agy` binary (default: `agy` on `PATH`, then `~/.local/bin`, `/usr/local/bin`, `/opt/homebrew/bin`).
-- `AGY_MODEL` — pin a model for `/agy:prompt`, e.g. `"Claude Opus 4.6 (Thinking)"` (default: agy's own default). List with `agy models`. The companion also accepts `prompt --model "<name>"` for a per-call override.
-- `AGY_CC_STATE_DIR` — where run logs are kept (default: `~/.claude/.agy-cc`).
-- `AGY_CC_KEEP` — how many run logs to retain; older ones are pruned automatically (default: `50`).
+All optional — the plugin works out of the box: it finds `agy` automatically and uses your default model.
+
+- `AGY_MODEL` — use a specific agy model, e.g. `"Claude Opus 4.6 (Thinking)"` (see `agy models`).
+
+Advanced (rarely needed): `AGY_BIN` (override the binary path), `AGY_CC_STATE_DIR` (log location), `AGY_CC_KEEP` (run logs to keep, default 50).
 
 ## Permissions
 
