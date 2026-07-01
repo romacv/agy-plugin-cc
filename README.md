@@ -43,5 +43,5 @@ Then restart the session and run `/agy:setup`.
 
 ## Notes
 
-- `/agy:prompt` runs `agy` in print mode with a 15-minute timeout and **no permission-override flags**. It honors your own agy permission settings — `toolPermission` (`request-review` by default), `permissions` (allow/deny/ask), `trustedWorkspaces` — in `~/.gemini/antigravity-cli/settings.json`, editable via `/permissions` inside agy. Because print mode is non-interactive, a pending review can't be answered, so agy may return an answer without performing actions that need approval; pre-authorize those in settings if you want them to run unattended.
+- `/agy:prompt` runs `agy` in print mode with a 5-minute timeout and **no permission-override flags**. It honors your own agy permission settings — `toolPermission` (`request-review` by default), `permissions` (allow/deny/ask), `trustedWorkspaces` — in `~/.gemini/antigravity-cli/settings.json`, editable via `/permissions` inside agy. Because print mode is non-interactive, a pending review can't be answered, so agy may return an answer without performing actions that need approval; pre-authorize those in settings if you want them to run unattended.
 - Print mode emits no conversation ID, so per-thread resume is not exposed here. This plugin is single-shot delegate + history.
