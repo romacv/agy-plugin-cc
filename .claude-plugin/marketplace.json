@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Antigravity (agy) CLI plugin for Claude Code — setup, delegate a prompt, check status.",
-    "version": "0.1.4"
+    "version": "0.1.5"
   },
   "plugins": [
     {
       "name": "agy",
       "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:status.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "romacv"
       },
