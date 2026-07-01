@@ -20,5 +20,5 @@ Then relay the result:
 The run is logged. The user can review history and outputs later with `/agy:status`.
 
 Notes:
-- agy runs with `--dangerously-skip-permissions` so it can act unattended (write files, run commands) in the current directory — this is required for headless print mode.
+- agy runs with **no permission-override flags** — it honors your own agy permission settings (`toolPermission`, `permissions`, `trustedWorkspaces`) in `~/.gemini/antigravity-cli/settings.json`, manageable via the `/permissions` command inside agy. Print mode is non-interactive, so a pending review can't be answered; agy may return an answer without performing write/run actions that need approval. Pre-authorize those in settings if you want them to run unattended.
 - To pin a model, set `AGY_MODEL` in the environment (e.g. `AGY_MODEL="Claude Opus 4.6 (Thinking)"`); otherwise agy's default is used.

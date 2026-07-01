@@ -76,7 +76,7 @@ cmd_prompt() {
 
   local start end rc
   start="$(date +%s)"
-  "$bin" -p --dangerously-skip-permissions --print-timeout 15m "${model_args[@]}" "$prompt" 2>&1 | tee -a "$log"
+  "$bin" -p --print-timeout 15m "${model_args[@]}" "$prompt" 2>&1 | tee -a "$log"
   rc="${PIPESTATUS[0]}"
   end="$(date +%s)"
   {
