@@ -103,13 +103,39 @@ cmd_prompt() {
   local -a model_args=()
   [ -n "${AGY_MODEL:-}" ] && model_args=(--model "$AGY_MODEL")
 
+  # Project isolation: run under OUR OWN pinned agy project — never the globally
+  # most-recent one, which may belong to an unrelated repo (that cross-project bleed
+  # is what makes agy wander into another workspace's task backlog and time out).
+  # First run creates a fresh project (--new-project) and we remember its id; every
+  # later run resumes ONLY that project (--project <id>). Continuity stays inside this
+  # plugin's own agent; foreign projects can never leak in.
+  local brain_dir="$HOME/.gemini/antigravity-cli/brain"
+  local project_file="$STATE_DIR/project-id"
+  local -a proj_args=()
+  local before_dirs="" used_new=0
+  if [ -s "$project_file" ]; then
+    proj_args=(--project "$(cat "$project_file")")
+  else
+    proj_args=(--new-project); used_new=1
+    before_dirs="$(ls -1d "$brain_dir"/*/ 2>/dev/null | sort)"
+  fi
+
   local start end rc
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout 5m "${model_args[@]}" -p "$prompt" 2>&1 | tee -a "$log"
+  "$bin" --print-timeout 5m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" 2>&1 | tee -a "$log"
   rc="${PIPESTATUS[0]}"
   end="$(date +%s)"
+
+  # After a first-time --new-project run, remember the id agy created (the brain dir
+  # that appeared) so subsequent calls resume THIS project only.
+  if [ "$used_new" -eq 1 ] && [ "$rc" -eq 0 ]; then
+    local after_dirs newdir
+    after_dirs="$(ls -1d "$brain_dir"/*/ 2>/dev/null | sort)"
+    newdir="$(comm -13 <(printf '%s\n' "$before_dirs") <(printf '%s\n' "$after_dirs") | head -1)"
+    [ -n "$newdir" ] && basename "$newdir" > "$project_file"
+  fi
   {
     echo "# ---"
     echo "# exit: $rc"
