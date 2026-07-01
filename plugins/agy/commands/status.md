@@ -1,7 +1,6 @@
 ---
 description: Show recent agy runs (history, exit codes, and log locations)
 argument-hint: '[<job-id>] [--all]'
-disable-model-invocation: true
 allowed-tools: Bash(bash:*)
 ---
 
