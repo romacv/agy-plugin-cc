@@ -1,24 +1,26 @@
 ---
-description: Send a request to the Antigravity (agy) CLI and relay its answer
+description: Dispatch a request to the Antigravity (agy) CLI as a background subagent
 argument-hint: '<your request>'
-allowed-tools: Bash(bash:*)
+allowed-tools: Agent
 ---
 
-Send the user's request to agy in non-interactive print mode. The request text is passed on stdin (safe against quotes, newlines, and backticks):
+ALWAYS run this as a background subagent — never inline Bash.
 
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.sh" prompt <<'AGY_EOF'
-$ARGUMENTS
-AGY_EOF
-```
+Spawn the `agy:agy-prompt` subagent via the Agent tool with `run_in_background: true`, passing the user's request verbatim as the `prompt`:
 
-Then relay the result:
+- `subagent_type`: `agy:agy-prompt`
+- `run_in_background`: `true`
+- `description`: a 3–5 word label (e.g. "agy prompt: <topic>")
+- `prompt`: `$ARGUMENTS` (the user's request text, exactly as given)
 
-- Exit code `0`: present agy's report to the user verbatim, then add a 1–2 line summary of what it did.
-- Non-zero exit or timeout: surface the exit code and any stderr shown. Do NOT fabricate or guess an answer.
+Do NOT run `agy-companion.sh` yourself — the subagent forwards to the agy runtime. Do not inspect the repo, draft your own answer, or poll; the harness notifies you when the background subagent completes.
+
+On completion:
+- Present agy's answer (the subagent's returned text) verbatim, then add a 1–2 line summary of what it did.
+- If the subagent failed, surface its error output as-is. Do NOT fabricate or guess an answer.
 
 The run is logged. The user can review history and outputs later with `/agy:status`.
 
 Notes:
 - agy runs with **no permission-override flags** — it honors your own agy permission settings (`toolPermission`, `permissions`, `trustedWorkspaces`) in `~/.gemini/antigravity-cli/settings.json`, manageable via the `/permissions` command inside agy. Print mode is non-interactive, so a pending review can't be answered; agy may return an answer without performing write/run actions that need approval. Pre-authorize those in settings if you want them to run unattended.
-- To pin a model, set `AGY_MODEL` in the environment (e.g. `AGY_MODEL="Claude Opus 4.6 (Thinking)"`); otherwise agy's default is used.
+- To pin a model, set `AGY_MODEL` in the environment before the subagent runs (e.g. `AGY_MODEL="Claude Opus 4.6 (Thinking)"`); otherwise agy's default is used.
