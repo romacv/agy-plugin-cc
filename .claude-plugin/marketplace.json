@@ -1,0 +1,21 @@
+{
+  "name": "romacv-agy",
+  "owner": {
+    "name": "romacv"
+  },
+  "metadata": {
+    "description": "Antigravity (agy) CLI plugin for Claude Code — setup, delegate a prompt, check status.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "agy",
+      "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:status.",
+      "version": "0.1.0",
+      "author": {
+        "name": "romacv"
+      },
+      "source": "./plugins/agy"
+    }
+  ]
+}
