@@ -38,6 +38,20 @@ cmd_setup() {
   if "$bin" models >/dev/null 2>&1; then
     echo "auth: OK"
     echo "default-model: $("$bin" models 2>/dev/null | head -1)"
+    # Report the agy tool-permission mode: it alone decides whether agy may ACT
+    # (write files / run commands) unattended in print mode. This plugin forces no
+    # flags, so this is entirely the user's own agy setting.
+    local settings="$HOME/.gemini/antigravity-cli/settings.json" tp="request-review"
+    [ -f "$settings" ] && tp="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('toolPermission','request-review'))" "$settings" 2>/dev/null || echo request-review)"
+    echo "tool-permission: $tp"
+    case "$tp" in
+      always-proceed|proceed-in-sandbox)
+        echo "acts-unattended: yes ($tp)" ;;
+      *)
+        echo "acts-unattended: no ($tp) — agy answers but SKIPS writes/commands in print mode"
+        echo "  to let agy act: run /permissions inside agy (or edit $settings) and choose"
+        echo "  'always-proceed' (full) or 'proceed-in-sandbox' (sandboxed)" ;;
+    esac
     echo "READY"
     return 0
   fi

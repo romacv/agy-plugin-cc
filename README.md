@@ -41,7 +41,17 @@ Then restart the session and run `/agy:setup`.
 - `AGY_MODEL` — pin a model for `/agy:prompt`, e.g. `"Claude Opus 4.6 (Thinking)"` (default: agy's own default). List with `agy models`.
 - `AGY_CC_STATE_DIR` — where run logs are kept (default: `~/.claude/.agy-cc`).
 
+## Permissions
+
+The plugin passes **no permission-override flags** and never forces auto-approve. Whether agy may act unattended (write files, run commands) in print mode is governed entirely by *your own* agy setting `toolPermission` in `~/.gemini/antigravity-cli/settings.json`:
+
+- `request-review` (default) — agy answers but **skips** write/run actions in non-interactive print mode.
+- `proceed-in-sandbox` — agy acts without prompting, confined to a sandbox.
+- `always-proceed` — agy acts without prompting, unsandboxed.
+
+To let agy do work through `/agy:prompt`, enable it yourself: run `/permissions` inside `agy` (or edit `settings.json`) and pick `always-proceed` or `proceed-in-sandbox`. `/agy:setup` reports your current mode.
+
 ## Notes
 
-- `/agy:prompt` runs `agy` in print mode with a 5-minute timeout and **no permission-override flags**. It honors your own agy permission settings — `toolPermission` (`request-review` by default), `permissions` (allow/deny/ask), `trustedWorkspaces` — in `~/.gemini/antigravity-cli/settings.json`, editable via `/permissions` inside agy. Because print mode is non-interactive, a pending review can't be answered, so agy may return an answer without performing actions that need approval; pre-authorize those in settings if you want them to run unattended.
+- `/agy:prompt` runs `agy` in print mode with a 5-minute timeout. See [Permissions](#permissions) for what agy is allowed to do.
 - Print mode emits no conversation ID, so per-thread resume is not exposed here. This plugin is single-shot delegate + history.
