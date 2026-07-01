@@ -1,8 +1,12 @@
 {
   "name": "agy",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:status.",
   "author": {
     "name": "romacv"
-  }
+  },
+  "homepage": "https://github.com/romacv/agy-plugin-cc",
+  "repository": "https://github.com/romacv/agy-plugin-cc",
+  "keywords": ["antigravity", "agy", "gemini", "cli", "delegation"],
+  "license": "MIT"
 }

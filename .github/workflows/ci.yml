@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON manifests
+        run: |
+          python3 -c "import json; json.load(open('.claude-plugin/marketplace.json')); json.load(open('plugins/agy/.claude-plugin/plugin.json')); print('JSON ok')"
+
+      - name: Bash syntax check
+        run: bash -n plugins/agy/scripts/agy-companion.sh
+
+      - name: ShellCheck (errors only)
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -S error plugins/agy/scripts/agy-companion.sh
+
+      - name: Command frontmatter present
+        run: |
+          for f in plugins/agy/commands/*.md; do
+            head -1 "$f" | grep -q '^---$' || { echo "missing YAML frontmatter: $f"; exit 1; }
+          done
+          echo "frontmatter ok"

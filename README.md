@@ -8,7 +8,7 @@ A small Claude Code plugin that lets you drive the **Antigravity CLI (`agy`)** �
 |---|---|
 | `/agy:setup` | Checks that the `agy` binary is installed and authenticated; reports the default model. |
 | `/agy:prompt <request>` | Sends your request to `agy -p` (non-interactive), relays the answer, and logs the run. |
-| `/agy:status [--all]` | Shows recent `agy` runs (id, time, exit code, duration, prompt, log path). |
+| `/agy:status [<job-id>\|--all]` | Lists recent `agy` runs (id, time, exit, duration, prompt); pass a `<job-id>` to print that run's full log. |
 
 ## Layout
 
@@ -38,8 +38,9 @@ Then restart the session and run `/agy:setup`.
 ## Configuration (env)
 
 - `AGY_BIN` — path to the `agy` binary (default: `agy` on `PATH`, then `~/.local/bin`, `/usr/local/bin`, `/opt/homebrew/bin`).
-- `AGY_MODEL` — pin a model for `/agy:prompt`, e.g. `"Claude Opus 4.6 (Thinking)"` (default: agy's own default). List with `agy models`.
+- `AGY_MODEL` — pin a model for `/agy:prompt`, e.g. `"Claude Opus 4.6 (Thinking)"` (default: agy's own default). List with `agy models`. The companion also accepts `prompt --model "<name>"` for a per-call override.
 - `AGY_CC_STATE_DIR` — where run logs are kept (default: `~/.claude/.agy-cc`).
+- `AGY_CC_KEEP` — how many run logs to retain; older ones are pruned automatically (default: `50`).
 
 ## Permissions
 
@@ -55,3 +56,7 @@ To let agy do work through `/agy:prompt`, enable it yourself: run `/permissions`
 
 - `/agy:prompt` runs `agy` in print mode with a 5-minute timeout. See [Permissions](#permissions) for what agy is allowed to do.
 - Print mode emits no conversation ID, so per-thread resume is not exposed here. This plugin is single-shot delegate + history.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
