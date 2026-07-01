@@ -76,7 +76,9 @@ cmd_prompt() {
 
   local start end rc
   start="$(date +%s)"
-  "$bin" -p --print-timeout 15m "${model_args[@]}" "$prompt" 2>&1 | tee -a "$log"
+  # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
+  # immediately after -p, with every other flag placed before it.
+  "$bin" --print-timeout 15m "${model_args[@]}" -p "$prompt" 2>&1 | tee -a "$log"
   rc="${PIPESTATUS[0]}"
   end="$(date +%s)"
   {
