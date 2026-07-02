@@ -121,12 +121,32 @@ cmd_prompt() {
   fi
 
   local start end rc
+  # Hard watchdog (pure bash — no coreutils/timeout needed): agy print mode can WEDGE —
+  # a tool-permission review it can't answer non-interactively, or a long/stuck spawned
+  # command (e.g. a build) — and its own --print-timeout does NOT bound those, so a job can
+  # hang indefinitely (seen: 10+ min). Run agy in the background with output tee'd to the
+  # log+stdout via process substitution (so $! is agy's REAL pid), and a sleeper that
+  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds (default 480 = 8m,
+  # a backstop above agy's internal 5m wait).
+  local agy_timeout="${AGY_TIMEOUT:-480}"
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout 5m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" 2>&1 | tee -a "$log"
-  rc="${PIPESTATUS[0]}"
+  "$bin" --print-timeout 5m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log") 2>&1 &
+  local agy_pid=$!
+  ( sleep "$agy_timeout"
+    if kill -0 "$agy_pid" 2>/dev/null; then
+      kill -TERM "$agy_pid" 2>/dev/null; pkill -TERM -P "$agy_pid" 2>/dev/null
+      sleep 5
+      kill -KILL "$agy_pid" 2>/dev/null; pkill -KILL -P "$agy_pid" 2>/dev/null
+    fi ) & local wd_pid=$!
+  wait "$agy_pid" 2>/dev/null; rc=$?
+  kill "$wd_pid" 2>/dev/null; wait "$wd_pid" 2>/dev/null
   end="$(date +%s)"
+  if [ "$rc" -eq 143 ] || [ "$rc" -eq 137 ]; then
+    rc=124
+    echo "[agy-companion: HARD TIMEOUT after ${agy_timeout}s — agy hung and was killed. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
+  fi
 
   # After a first-time --new-project run, remember the id agy created (the brain dir
   # that appeared) so subsequent calls resume THIS project only.
