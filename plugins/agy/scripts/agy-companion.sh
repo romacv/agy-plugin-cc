@@ -126,13 +126,13 @@ cmd_prompt() {
   # command (e.g. a build) — and its own --print-timeout does NOT bound those, so a job can
   # hang indefinitely (seen: 10+ min). Run agy in the background with output tee'd to the
   # log+stdout via process substitution (so $! is agy's REAL pid), and a sleeper that
-  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds (default 480 = 8m,
-  # a backstop above agy's internal 5m wait).
-  local agy_timeout="${AGY_TIMEOUT:-480}"
+  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds (default 300 = 5m,
+  # a backstop above agy's internal 4m wait).
+  local agy_timeout="${AGY_TIMEOUT:-300}"
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout 5m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log") 2>&1 &
+  "$bin" --print-timeout 4m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log") 2>&1 &
   local agy_pid=$!
   ( sleep "$agy_timeout"
     if kill -0 "$agy_pid" 2>/dev/null; then
