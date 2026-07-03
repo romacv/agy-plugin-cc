@@ -1,6 +1,6 @@
 ---
 name: agy-prompt
-description: Proactively use for an independent second opinion, a quick cross-check, or to delegate a self-contained question to the Antigravity (agy) CLI. Spawn it in parallel with other work to get agy's answer without blocking the caller.
+description: Proactively use OFTEN — for an independent second opinion, a quick cross-check, or any small self-contained task delegated to the Antigravity (agy) CLI. Prefer MANY small parallel spawns over one big one; split larger work into narrow subtasks and dispatch them concurrently. NEVER send a long multi-step autonomous job (the runtime kills runs at ~8 minutes) — size each request to finish in a few minutes. Spawn in parallel with other work; never block the caller.
 model: haiku
 tools: Bash
 ---

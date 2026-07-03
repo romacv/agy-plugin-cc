@@ -6,6 +6,8 @@ allowed-tools: Agent
 
 ALWAYS run this as a background subagent — never inline Bash.
 
+Task sizing: agy is for small, self-contained requests that finish in a few minutes (the runtime kills runs at ~8 minutes). If the request is large, split it into narrow independent subtasks and dispatch several `agy:agy-prompt` subagents in parallel instead of one long job.
+
 Spawn the `agy:agy-prompt` subagent via the Agent tool with `run_in_background: true`, passing the user's request verbatim as the `prompt`:
 
 - `subagent_type`: `agy:agy-prompt`
