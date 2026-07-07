@@ -91,7 +91,7 @@
         
         <!-- Showcase Box -->
         <div class="hero-showcase">
-            <!-- Terminal 1: Claude Code Primary Session -->
+            <!-- Terminal: Claude Code Session -->
             <div class="terminal-mock">
                 <div class="terminal-mock-header">
                     <div class="terminal-dots">
@@ -105,29 +105,6 @@
                     <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize index.html"</div>
                     <div class="term-line loading-line"><span class="term-spinner">⠋</span> Calling Agent (agy:agy-prompt)...</div>
                     <div class="term-line success-line">✔ Agent (12s)</div>
-                    <div class="term-line success-line" style="margin-top: 8px;">✔ index.html optimized successfully</div>
-                    <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
-                </div>
-            </div>
-            
-            <!-- Terminal 2: Subagent Session -->
-            <div class="terminal-mock subagent-term">
-                <div class="terminal-mock-header">
-                    <div class="terminal-dots">
-                        <span class="term-dot red"></span>
-                        <span class="term-dot yellow"></span>
-                        <span class="term-dot green"></span>
-                    </div>
-                    <span class="terminal-mock-title">Subagent Session — agy-prompt</span>
-                </div>
-                <div class="terminal-mock-body">
-                    <div class="term-line comment"># Subagent starts in isolated context</div>
-                    <div class="term-line loading-line">Proposing command to run:</div>
-                    <div class="term-line" style="color: #4285F4; padding-left: 8px;">$ bash "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.sh" prompt &lt;&lt;'AGY_EOF'</div>
-                    <div class="term-line" style="color: #4285F4; padding-left: 18px;">optimize index.html</div>
-                    <div class="term-line" style="color: #4285F4; padding-left: 8px;">AGY_EOF</div>
-                    <div class="term-line loading-line" style="margin-top: 4px;">Approve? (y/n) <span class="success-line">y</span></div>
-                    <div class="term-line loading-line">Running command...</div>
                     <div class="term-line success-line" style="margin-top: 8px;">✔ index.html optimized successfully</div>
                     <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
                 </div>
