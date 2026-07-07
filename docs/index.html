@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Google Antigravity CLI Plugin for Claude Code (Unofficial made by romacv)</title>
+    <meta name="description" content="Integrate Google's Antigravity CLI agent directly into your Claude Code developer sessions with zero token overhead." />
+    <meta name="keywords" content="google antigravity, antigravity cli, claude code, claude plugin, anthropic, agentic coding, token optimization, command-line interface, romacv" />
+    <meta name="author" content="romacv" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://romacv.github.io/agy-plugin-cc/" />
+
+    <!-- OpenGraph Metadata -->
+    <meta property="og:title" content="Google Antigravity CLI Plugin for Claude Code (Unofficial)" />
+    <meta property="og:description" content="Delegate long-running agent tasks, check statuses, and manage models inside Claude Code with zero reasoning token overhead." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://romacv.github.io/agy-plugin-cc/" />
+    <meta property="og:site_name" content="Google Antigravity CLI Plugin for Claude Code" />
+    
+    <!-- Twitter Metadata -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Google Antigravity CLI Plugin for Claude Code (Unofficial)" />
+    <meta name="twitter:description" content="Delegate tasks and manage models inside Claude Code with zero reasoning token overhead." />
+
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,400..500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+<!-- Custom Header Navbar -->
+<header class="site-header">
+    <div class="nav-container">
+        <div class="nav-brand-container">
+            <a href="#" class="nav-brand-link">Antigravity-CLI plugin for Claude Code</a>
+            <span class="brand-disclaimer">(Unofficial by <a href="https://github.com/romacv" target="_blank" class="brand-author">romacv</a> · <a href="https://github.com/romacv/agy-plugin-cc" target="_blank" class="brand-link-ref">GitHub</a> · <a href="https://romacv.github.io" target="_blank" class="brand-link-ref">Portfolio</a>)</span>
+        </div>
+        <nav class="nav-menu">
+            <a href="#install" class="nav-menu-link">Install</a>
+            <a href="#features" class="nav-menu-link">Features</a>
+            <a href="#commands" class="nav-menu-link">Commands</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-container">
+        <div class="hero-header-box">
+            <h1 class="hero-title">Orchestrate <span class="grad-google">Antigravity CLI</span> inside <span class="grad-claude">Claude Code</span>.</h1>
+            <p class="hero-lede">
+                A high-velocity, token-optimized bridge for the agentic terminal era. 
+                Delegate long-running coding runs, execute prompt scripts in the background, 
+                and verify environments with zero reasoning token consumption.
+            </p>
+            <div class="hero-actions">
+                <a href="#install" class="btn-primary">Get Started</a>
+                <a href="https://github.com/romacv/agy-plugin-cc" class="btn-outline" target="_blank" rel="noopener">GitHub Project</a>
+            </div>
+        </div>
+        
+        <!-- Showcase Box -->
+        <div class="hero-showcase">
+            <!-- Terminal 1: Claude Code Primary Session -->
+            <div class="terminal-mock">
+                <div class="terminal-mock-header">
+                    <div class="terminal-dots">
+                        <span class="term-dot red"></span>
+                        <span class="term-dot yellow"></span>
+                        <span class="term-dot green"></span>
+                    </div>
+                    <span class="terminal-mock-title">Primary Session — Claude Code</span>
+                </div>
+                <div class="terminal-mock-body">
+                    <div class="term-line"><span class="term-prompt">➜</span> /agy:prompt "optimize index.html"</div>
+                    <div class="term-line loading-line"><span class="term-spinner">⠋</span> Spawning background subagent agy:agy-prompt...</div>
+                    <div class="term-line success-line">✔ subagent agy:agy-prompt finished</div>
+                </div>
+            </div>
+            
+            <!-- Terminal 2: Subagent Session -->
+            <div class="terminal-mock subagent-term">
+                <div class="terminal-mock-header">
+                    <div class="terminal-dots">
+                        <span class="term-dot red"></span>
+                        <span class="term-dot yellow"></span>
+                        <span class="term-dot green"></span>
+                    </div>
+                    <span class="terminal-mock-title">Subagent Session — agy-prompt</span>
+                </div>
+                <div class="terminal-mock-body">
+                    <div class="term-line comment"># Forwarding request to local agy CLI...</div>
+                    <div class="term-line"><span class="term-prompt">➜</span> bash agy-companion.sh prompt <<'EOF'</div>
+                    <div class="term-line">optimize index.html</div>
+                    <div class="term-line">EOF</div>
+                    <div class="term-line active-line"><span class="term-dots-progress">●●●</span> Running agy command...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Grid -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Minimalist design. Maximum throughput.</h2>
+            <p class="section-lede">
+                Designed to complement your active coding workflow. Zero setup baggage.
+            </p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-tag">0-Token Execution</div>
+                <h3 class="feature-title">Direct Shell Commands</h3>
+                <p class="feature-desc">
+                    Inquiries like `/agy:setup` and `/agy:status` execute directly via the shell interface. By bypassing the LLM reasoning cycle entirely, they run instantly with zero token cost.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-tag">Compressed Context</div>
+                <h3 class="feature-title">85% Smaller Prompt Footprint</h3>
+                <p class="feature-desc">
+                    System prompts are stripped of redundant definitions. The lightweight forwarder handles delegation on cheap model backends, preventing context bloat.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-tag">Isolated Runs</div>
+                <h3 class="feature-title">Workspace Project Locking</h3>
+                <p class="feature-desc">
+                    Agy processes are locked to active local workspace folders. Inter-project bleed is eliminated, keeping your local run log history clean and organized.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Install Section -->
+<section class="install-section" id="install">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">One-minute installation.</h2>
+            <p class="section-lede">Follow these steps sequentially within your Claude Code terminal.</p>
+        </div>
+
+        <div class="steps-flow">
+            <div class="step-item">
+                <div class="step-circle">1</div>
+                <div class="step-content">
+                    <h3 class="step-header">Register Marketplace</h3>
+                    <p class="step-desc">Register the romacv repository as a plugin marketplace source.</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" data-copy="/plugin marketplace add romacv/agy-plugin-cc">Copy</button>
+                        <pre>/plugin marketplace add romacv/agy-plugin-cc</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-circle">2</div>
+                <div class="step-content">
+                    <h3 class="step-header">Install Plugin</h3>
+                    <p class="step-desc">Pull the agy integration package into your active user space.</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" data-copy="/plugin install agy@romacv-agy">Copy</button>
+                        <pre>/plugin install agy@romacv-agy</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-circle">3</div>
+                <div class="step-content">
+                    <h3 class="step-header">Verify Environment</h3>
+                    <p class="step-desc">Reload your plugins and run the diagnostic setup command.</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" data-copy="/reload-plugins
+/agy:setup">Copy</button>
+                        <pre>/reload-plugins
+/agy:setup</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Command Reference -->
+<section class="commands-section" id="commands">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Command Reference</h2>
+            <p class="section-lede">The plugin exposes only three primary actions to maintain maximum simplicity.</p>
+        </div>
+        
+        <div class="table-scroll">
+            <table class="reference-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Arguments</th>
+                        <th>Role</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/agy:setup</code></td>
+                        <td>—</td>
+                        <td>Performs diagnostic installation check and outputs path configurations.</td>
+                        <td><span class="badge badge-direct">Direct</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>/agy:prompt</code></td>
+                        <td><code>&lt;request&gt;</code></td>
+                        <td>Sends request verbatim (supports background subagent or direct inline execution).</td>
+                        <td><span class="badge badge-subagent">Subagent / Direct</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>/agy:status</code></td>
+                        <td class="nowrap-cell"><code>[&lt;job-id&gt; | --all]</code></td>
+                        <td>Renders job summaries or outputs logs of specific background jobs.</td>
+                        <td><span class="badge badge-direct">Direct</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-left">
+            <span>© 2026 Google Antigravity Plugin CC</span>
+            <span class="separator">·</span>
+            <span>MIT License</span>
+        </div>
+        <div class="footer-right">
+            <a href="https://github.com/romacv/agy-plugin-cc" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://antigravity.google" class="footer-link" target="_blank" rel="noopener">Antigravity Official</a>
+        </div>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
