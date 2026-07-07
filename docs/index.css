@@ -306,6 +306,7 @@ code {
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 20px;
   padding: 10px 0;
 }
@@ -314,19 +315,15 @@ code {
   background-color: #1e1f22;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  width: 90%;
+  width: 100%;
+  max-width: 520px;
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   position: relative;
 }
 
-.terminal-mock:not(.subagent-term) {
-  align-self: flex-start;
-}
-
 .terminal-mock.subagent-term {
-  align-self: flex-end;
   border-color: rgba(224, 91, 61, 0.25);
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
 }
@@ -771,12 +768,5 @@ code {
   }
   .terminal-mock {
     width: 100%;
-  }
-  .terminal-mock:not(.subagent-term) {
-    align-self: center;
-  }
-  .terminal-mock.subagent-term {
-    align-self: center;
-    margin-top: 0;
   }
 }
