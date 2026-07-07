@@ -94,10 +94,11 @@
                 </div>
                 <div class="terminal-mock-body">
                     <div class="term-line comment"># Forwarding request to local agy CLI...</div>
-                    <div class="term-line"><span class="term-prompt">➜</span> bash agy-companion.sh prompt <<'EOF'</div>
+                    <div class="term-line"><span class="term-prompt">➜</span> bash "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.sh" prompt &lt;&lt;'AGY_EOF'</div>
                     <div class="term-line">optimize index.html</div>
-                    <div class="term-line">EOF</div>
-                    <div class="term-line active-line"><span class="term-dots-progress">●●●</span> Running agy command...</div>
+                    <div class="term-line">AGY_EOF</div>
+                    <div class="term-line success-line">✔ index.html optimized successfully</div>
+                    <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
                 </div>
             </div>
         </div>
