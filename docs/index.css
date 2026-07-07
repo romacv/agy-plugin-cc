@@ -305,8 +305,8 @@ code {
 .hero-showcase {
   position: relative;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  gap: 20px;
   padding: 10px 0;
 }
 
@@ -314,17 +314,55 @@ code {
   background-color: #1e1f22;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  width: 100%;
-  max-width: 520px;
+  width: 90%;
   overflow: hidden;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   position: relative;
 }
 
+.terminal-mock:not(.subagent-term) {
+  align-self: flex-start;
+}
+
+.terminal-mock.subagent-term {
+  align-self: flex-end;
+  border-color: rgba(224, 91, 61, 0.25);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+}
+
 .terminal-mock:hover {
   transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+}
+
+.terminal-mock-status {
+  background-color: #2b2d31;
+  padding: 6px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 11px;
+  color: #9ba0a5;
+  font-family: var(--font-family-mono);
+}
+
+.status-dot-pulse {
+  color: #22c55e;
+  margin-right: 6px;
+  font-weight: bold;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.term-cursor {
+  color: #dfe1e5;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 .terminal-mock-header {
@@ -728,7 +766,17 @@ code {
   .features-section, .install-section, .commands-section {
     padding: 32px 16px;
   }
+  .hero-showcase {
+    gap: 16px;
+  }
   .terminal-mock {
     width: 100%;
+  }
+  .terminal-mock:not(.subagent-term) {
+    align-self: center;
+  }
+  .terminal-mock.subagent-term {
+    align-self: center;
+    margin-top: 0;
   }
 }

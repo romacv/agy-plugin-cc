@@ -91,7 +91,7 @@
         
         <!-- Showcase Box -->
         <div class="hero-showcase">
-            <!-- Terminal: Claude Code Session -->
+            <!-- Terminal 1: Direct Inline Session -->
             <div class="terminal-mock">
                 <div class="terminal-mock-header">
                     <div class="terminal-dots">
@@ -99,14 +99,35 @@
                         <span class="term-dot yellow"></span>
                         <span class="term-dot green"></span>
                     </div>
-                    <span class="terminal-mock-title">Primary Session — Claude Code</span>
+                    <span class="terminal-mock-title">Direct Inline Session — Claude Code</span>
+                </div>
+                <div class="terminal-mock-body">
+                    <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize index.html" --inline</div>
+                    <div class="term-line comment"># Forwarding request to local agy CLI...</div>
+                    <div class="term-line success-line">✔ index.html optimized successfully</div>
+                    <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
+                    <div class="term-line" style="margin-top: 8px;"><span class="term-prompt">claude &gt;</span> <span class="term-cursor">█</span></div>
+                </div>
+            </div>
+
+            <!-- Terminal 2: Background Subagent Session -->
+            <div class="terminal-mock subagent-term">
+                <div class="terminal-mock-header">
+                    <div class="terminal-dots">
+                        <span class="term-dot red"></span>
+                        <span class="term-dot yellow"></span>
+                        <span class="term-dot green"></span>
+                    </div>
+                    <span class="terminal-mock-title">Background Subagent Session — Claude Code</span>
                 </div>
                 <div class="terminal-mock-body">
                     <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize index.html"</div>
-                    <div class="term-line loading-line"><span class="term-spinner">⠋</span> Calling Agent (agy:agy-prompt)...</div>
-                    <div class="term-line success-line">✔ Agent (12s)</div>
-                    <div class="term-line success-line" style="margin-top: 8px;">✔ index.html optimized successfully</div>
-                    <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
+                    <div class="term-line loading-line"><span class="term-spinner">⠋</span> Spawning background subagent agy:agy-prompt...</div>
+                    <div class="term-line" style="margin-top: 8px;"><span class="term-prompt">claude &gt;</span> <span class="term-cursor">█</span></div>
+                </div>
+                <div class="terminal-mock-status">
+                    <span class="status-agent"><span class="status-dot-pulse">●</span> agy-prompt (running)</span>
+                    <span class="status-metrics">$0.02 · 1.4k tokens</span>
                 </div>
             </div>
         </div>
