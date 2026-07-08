@@ -13,4 +13,4 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.sh" prompt <<'AGY_EOF'
 AGY_EOF
 ```
 
-Print the command output verbatim. Do not add any extra text or commentary.
+Print the command output verbatim. Do not add any extra text or commentary — except that whenever the forwarded work changes any file, always show the user the change as a git-style +/- diff of each edited hunk (real added/removed lines), not a prose summary.
