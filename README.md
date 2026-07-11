@@ -8,6 +8,7 @@ A small Claude Code plugin that lets you drive the **Antigravity CLI (`agy`)** �
 |---|---|
 | `/agy:setup` | Checks that the `agy` binary is installed and authenticated; reports the default model. |
 | `/agy:prompt <request>` | Sends your request to `agy -p` (non-interactive), relays the answer, and logs the run. |
+| `/agy:review <diff-path-or-files>` | Sends a read-only adversarial review to `agy` and reports defects or `PASS`. |
 | `/agy:status [<job-id>\|--all]` | Lists recent `agy` runs (id, time, exit, duration, prompt); pass a `<job-id>` to print that run's full log. |
 
 ## Layout
@@ -20,6 +21,7 @@ agy-plugin-cc/
     ├── commands/
     │   ├── setup.md                    # /agy:setup
     │   ├── prompt.md                   # /agy:prompt
+    │   ├── review.md                   # /agy:review
     │   └── status.md                   # /agy:status
     └── scripts/agy-companion.sh        # setup | prompt | status helper
 ```

@@ -120,7 +120,7 @@ cmd_prompt() {
     before_dirs="$(ls -1d "$brain_dir"/*/ 2>/dev/null | sort)"
   fi
 
-  local start end rc
+  local start end duration rc stdout_file stderr_file
   # Hard watchdog (pure bash — no coreutils/timeout needed): agy print mode can WEDGE —
   # a tool-permission review it can't answer non-interactively, or a long/stuck spawned
   # command (e.g. a build) — and its own --print-timeout does NOT bound those, so a job can
@@ -129,10 +129,12 @@ cmd_prompt() {
   # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds (default 300 = 5m,
   # a backstop above agy's internal 4m wait).
   local agy_timeout="${AGY_TIMEOUT:-300}"
+  stdout_file="$JOBS_DIR/$id.stdout"
+  stderr_file="$JOBS_DIR/$id.stderr"
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout 4m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log") 2>&1 &
+  "$bin" --print-timeout 4m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
   local agy_pid=$!
   ( sleep "$agy_timeout"
     if kill -0 "$agy_pid" 2>/dev/null; then
@@ -143,10 +145,32 @@ cmd_prompt() {
   wait "$agy_pid" 2>/dev/null; rc=$?
   kill "$wd_pid" 2>/dev/null; wait "$wd_pid" 2>/dev/null
   end="$(date +%s)"
+  duration=$((end - start))
+  sleep 1
+  [ -s "$stdout_file" ] && cat "$stdout_file"
   if [ "$rc" -eq 143 ] || [ "$rc" -eq 137 ]; then
     rc=124
     echo "[agy-companion: HARD TIMEOUT after ${agy_timeout}s — agy hung and was killed. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
   fi
+
+  local quota_marker=0 empty_body=0 reset=""
+  grep -Eqi 'RESOURCE_EXHAUSTED|HTTP[^0-9]*429' "$stderr_file" "$stdout_file" && quota_marker=1
+  if [ "$rc" -eq 0 ] && [ "$duration" -le 15 ] && ! grep -q '[^[:space:]]' "$stdout_file"; then
+    empty_body=1
+  fi
+  if [ "$quota_marker" -eq 1 ] && [ -s "$stdout_file" ] && ! grep -Eqi 'RESOURCE_EXHAUSTED|HTTP[^0-9]*429' "$stdout_file"; then
+    quota_marker=0
+  fi
+  if [ "$quota_marker" -eq 1 ] || [ "$empty_body" -eq 1 ]; then
+    reset="$(sed -nE -e 's/.*[Rr]esets? (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' -e 's/.*[Rr]etry (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' "$stderr_file" "$stdout_file" | head -1)"
+    if [ -n "$reset" ]; then
+      echo "agy at limit — resets in $reset" | tee -a "$log"
+    else
+      echo "agy returned empty output — treat as failure" | tee -a "$log"
+    fi
+    [ "$rc" -eq 0 ] && rc=42
+  fi
+  [ -s "$log" ] && rm -f "$stdout_file" "$stderr_file"
 
   # After a first-time --new-project run, remember the id agy created (the brain dir
   # that appeared) so subsequent calls resume THIS project only.
@@ -159,13 +183,13 @@ cmd_prompt() {
   {
     echo "# ---"
     echo "# exit: $rc"
-    echo "# duration: $((end - start))s"
+    echo "# duration: ${duration}s"
   } >> "$log"
 
   prune_jobs
 
   echo
-  echo "[agy job $id · exit $rc · $((end - start))s · log: $log]"
+  echo "[agy job $id · exit $rc · ${duration}s · log: $log]"
   return "$rc"
 }
 

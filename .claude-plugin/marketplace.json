@@ -4,14 +4,14 @@
     "name": "romacv"
   },
   "metadata": {
-    "description": "Antigravity (agy) CLI plugin for Claude Code — setup, delegate a prompt, check status.",
-    "version": "0.1.9"
+    "description": "Antigravity (agy) CLI plugin for Claude Code — setup, delegate a prompt, review code, check status.",
+    "version": "0.1.10"
   },
   "plugins": [
     {
       "name": "agy",
-      "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:status.",
-      "version": "0.1.9",
+      "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:review, /agy:status.",
+      "version": "0.1.10",
       "author": {
         "name": "romacv"
       },
