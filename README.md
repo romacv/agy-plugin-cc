@@ -7,9 +7,12 @@ A small Claude Code plugin that lets you drive the **Antigravity CLI (`agy`)** �
 | Command | What it does |
 |---|---|
 | `/agy:setup` | Checks that the `agy` binary is installed and authenticated; reports the default model. |
-| `/agy:prompt <request>` | Sends your request to `agy -p` (non-interactive), relays the answer, and logs the run. |
-| `/agy:review <diff-path-or-files>` | Sends a read-only adversarial review to `agy` and reports defects or `PASS`. |
+| `/agy:prompt <request>` | Forwards your request straight to `agy -p` (non-interactive) as a backgrounded run, and logs it. |
+| `/agy:review <diff-path-or-files>` | Forwards a read-only adversarial review to `agy` as a backgrounded run; it reports defects or `PASS`. |
 | `/agy:status [<job-id>\|--all]` | Lists recent `agy` runs (id, time, exit, duration, prompt); pass a `<job-id>` to print that run's full log. |
+| `/agy:result <job-id>` | Prints a finished run's stored reply once `/agy:prompt` or `/agy:review` completes in the background. |
+
+`/agy:prompt` and `/agy:review` call the companion script directly via a backgrounded `Bash` call — there is no LLM subagent hop in between, so forwarding is deterministic and can't be skipped.
 
 ## Layout
 
@@ -22,8 +25,9 @@ agy-plugin-cc/
     │   ├── setup.md                    # /agy:setup
     │   ├── prompt.md                   # /agy:prompt
     │   ├── review.md                   # /agy:review
-    │   └── status.md                   # /agy:status
-    └── scripts/agy-companion.sh        # setup | prompt | status helper
+    │   ├── status.md                   # /agy:status
+    │   └── result.md                   # /agy:result
+    └── scripts/agy-companion.sh        # setup | prompt | status | result helper
 ```
 
 ## Install
@@ -58,7 +62,7 @@ To let agy do work through `/agy:prompt`, enable it yourself: run `/permissions`
 ## Notes
 
 - `/agy:prompt` runs `agy` in print mode with a 5-minute timeout. See [Permissions](#permissions) for what agy is allowed to do.
-- Print mode emits no conversation ID, so per-thread resume is not exposed here. This plugin is single-shot delegate + history.
+- Continuity is automatic, not per-job: agy has no per-job session model, so this plugin pins ONE agy project on first run and every subsequent `/agy:prompt` / `/agy:review` auto-continues it. There is no separate `resume <job-id>` command — there is only one ongoing project to resume.
 
 ## License
 

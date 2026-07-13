@@ -4,6 +4,7 @@
 #   setup                    Check the agy binary is installed & authed; report tool-permission.
 #   prompt [--model <name>]  Read a request on stdin, run `agy -p`, log it, relay output.
 #   status [<job-id>|--all]  List recent agy runs, or print one run's full log by id.
+#   result <job-id>          Print a finished run's stored reply (body only) and exit its status.
 #
 # Env:
 #   AGY_BIN            Override the agy binary (default: agy on PATH, then common paths).
@@ -238,9 +239,41 @@ cmd_status() {
   done <<< "$logs"
 }
 
+cmd_result() {
+  local want_id="${1:-}"
+  if [ -z "$want_id" ]; then
+    echo "Usage: /agy:result <job-id>"
+    return 1
+  fi
+  local jf="$JOBS_DIR/$want_id.log"
+  if [ ! -f "$jf" ]; then echo "No such job: $want_id"; return 1; fi
+
+  if ! grep -q '^# exit:' "$jf"; then
+    local mtime now age
+    mtime="$(stat -f %m "$jf" 2>/dev/null || stat -c %Y "$jf" 2>/dev/null || echo 0)"
+    now="$(date +%s)"; age=$(( (now - mtime) / 60 ))
+    if [ "$age" -ge 6 ]; then
+      echo "Job $want_id looks stale (no exit recorded, last write ${age}m ago) — it likely crashed or was interrupted."
+    else
+      echo "Job $want_id is still running — no result yet."
+    fi
+    return 1
+  fi
+
+  # The body is everything between the first and second "# ---" marker lines.
+  awk '/^# ---$/{c++; next} c==1{print}' "$jf"
+  local exitc dur
+  exitc="$(grep -m1 '^# exit:' "$jf" | cut -d' ' -f3-)"
+  dur="$(grep -m1 '^# duration:' "$jf" | cut -d' ' -f3-)"
+  echo
+  echo "[job $want_id · exit $exitc · $dur]"
+  [ "$exitc" = "0" ]
+}
+
 case "${1:-}" in
   setup)  shift; cmd_setup  "$@" ;;
   prompt) shift; cmd_prompt "$@" ;;
   status) shift; cmd_status "$@" ;;
-  *) echo "usage: agy-companion.sh {setup|prompt [--model <name>]|status [<job-id>|--all]}"; exit 64 ;;
+  result) shift; cmd_result "$@" ;;
+  *) echo "usage: agy-companion.sh {setup|prompt [--model <name>]|status [<job-id>|--all]|result <job-id>}"; exit 64 ;;
 esac

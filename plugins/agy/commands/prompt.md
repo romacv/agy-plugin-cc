@@ -1,14 +1,22 @@
 ---
 description: Dispatch a request to the Antigravity (agy) CLI as a background subagent
 argument-hint: '<your request>'
-allowed-tools: Agent
+disable-model-invocation: true
+allowed-tools: Bash(bash:*)
 ---
 
-Spawn the `agy:agy-prompt` subagent via the Agent tool with `run_in_background: true`:
+Forward the user's request to `agy` directly — do not inspect the repo, answer the request yourself, or draft any answer.
 
-- `subagent_type`: `agy:agy-prompt`
-- `run_in_background`: `true`
-- `description`: "agy prompt: $ARGUMENTS"
-- `prompt`: `$ARGUMENTS`
+Launch this single background Bash call:
 
-Do not inspect the repo or draft answers. On completion, present the subagent's output verbatim.
+```typescript
+Bash({
+  command: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.sh" prompt <<'AGY_EOF'\n$ARGUMENTS\nAGY_EOF`,
+  description: "agy prompt",
+  run_in_background: true
+})
+```
+
+Do not call `BashOutput` or wait for completion this turn. After launching, tell the user: "agy prompt started in the background. Check `/agy:status` for progress or `/agy:result <job-id>` once it finishes."
+
+Whenever the forwarded work changes any file, always show the user the change as a git-style +/- diff of each edited hunk (real added/removed lines), never a prose summary.
