@@ -2,6 +2,8 @@
 
 A small Claude Code plugin that lets you drive the **Antigravity CLI (`agy`)** — Google's agent-first terminal CLI (successor to Gemini CLI) — from inside Claude Code.
 
+> **Autonomous edits require opting the CLI in.** By default `agy` answers `/agy:prompt` requests but skips writing files or running commands. See [Permissions](#permissions) for the one-time `agy` setting that enables it.
+
 ## Commands
 
 | Command | What it does |

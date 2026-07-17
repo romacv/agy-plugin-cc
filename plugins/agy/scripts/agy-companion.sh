@@ -27,6 +27,16 @@ find_agy() {
   return 1
 }
 
+# Read the user's agy toolPermission setting into $AGY_TOOL_PERMISSION — it alone
+# decides whether agy may ACT (write files / run commands) unattended in print mode.
+# This plugin forces no flags, so this is entirely the user's own agy setting. Shared
+# by cmd_setup (reports it) and cmd_prompt (emits a loud pre-run banner from it).
+read_tool_permission() {
+  local settings="$HOME/.gemini/antigravity-cli/settings.json"
+  AGY_TOOL_PERMISSION="request-review"
+  [ -f "$settings" ] && AGY_TOOL_PERMISSION="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('toolPermission','request-review'))" "$settings" 2>/dev/null || echo request-review)"
+}
+
 # Delete all but the newest AGY_CC_KEEP job logs so the state dir can't grow unbounded.
 prune_jobs() {
   local keep="${AGY_CC_KEEP:-50}" f
@@ -49,11 +59,9 @@ cmd_setup() {
   if "$bin" models >/dev/null 2>&1; then
     echo "auth: OK"
     echo "default-model: $("$bin" models 2>/dev/null | head -1)"
-    # Report the agy tool-permission mode: it alone decides whether agy may ACT
-    # (write files / run commands) unattended in print mode. This plugin forces no
-    # flags, so this is entirely the user's own agy setting.
-    local settings="$HOME/.gemini/antigravity-cli/settings.json" tp="request-review"
-    [ -f "$settings" ] && tp="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('toolPermission','request-review'))" "$settings" 2>/dev/null || echo request-review)"
+    local settings="$HOME/.gemini/antigravity-cli/settings.json"
+    read_tool_permission
+    local tp="$AGY_TOOL_PERMISSION"
     echo "tool-permission: $tp"
     case "$tp" in
       always-proceed|proceed-in-sandbox)
@@ -100,6 +108,17 @@ cmd_prompt() {
     echo "# prompt: $first"
     echo "# ---"
   } > "$log"
+
+  # LOUD up front, before running agy: if the user's own toolPermission setting means
+  # agy will only ANSWER and skip writes/commands in print mode, say so unmissably —
+  # this is the exact condition that otherwise looks like a silent no-op later.
+  read_tool_permission
+  case "$AGY_TOOL_PERMISSION" in
+    always-proceed|proceed-in-sandbox) ;;
+    *)
+      echo "[agy-companion: toolPermission=$AGY_TOOL_PERMISSION — agy will ANSWER but will NOT write files/run commands in print mode. To enable autonomous edits, set toolPermission=always-proceed (or proceed-in-sandbox) via /permissions inside agy or ~/.gemini/antigravity-cli/settings.json.]" | tee -a "$log"
+      ;;
+  esac
 
   local -a model_args=()
   [ -n "${AGY_MODEL:-}" ] && model_args=(--model "$AGY_MODEL")
