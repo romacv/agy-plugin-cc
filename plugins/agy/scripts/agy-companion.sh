@@ -173,21 +173,25 @@ cmd_prompt() {
     echo "[agy-companion: HARD TIMEOUT after ${agy_timeout}s — agy hung and was killed. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
   fi
 
-  local quota_marker=0 empty_body=0 reset=""
+  local quota_marker=0 server_marker=0 empty_body=0 reset=""
   grep -Eqi 'RESOURCE_EXHAUSTED|HTTP[^0-9]*429' "$stderr_file" "$stdout_file" && quota_marker=1
-  if [ "$rc" -eq 0 ] && [ "$duration" -le 15 ] && ! grep -q '[^[:space:]]' "$stdout_file"; then
+  grep -Eqi 'HTTP[^0-9]*5[0-9][0-9]|internal server error|service unavailable|server unavailable|server error|network error' "$stderr_file" "$stdout_file" && server_marker=1
+  if [ "$rc" -eq 0 ] && ! grep -q '[^[:space:]]' "$stdout_file"; then
     empty_body=1
   fi
-  if [ "$quota_marker" -eq 1 ] && [ -s "$stdout_file" ] && ! grep -Eqi 'RESOURCE_EXHAUSTED|HTTP[^0-9]*429' "$stdout_file"; then
-    quota_marker=0
-  fi
-  if [ "$quota_marker" -eq 1 ] || [ "$empty_body" -eq 1 ]; then
+  if [ "$quota_marker" -eq 1 ]; then
     reset="$(sed -nE -e 's/.*[Rr]esets? (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' -e 's/.*[Rr]etry (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' "$stderr_file" "$stdout_file" | head -1)"
     if [ -n "$reset" ]; then
       echo "agy at limit — resets in $reset" | tee -a "$log"
     else
-      echo "agy returned empty output — treat as failure" | tee -a "$log"
+      echo "agy at limit — treat as failure" | tee -a "$log"
     fi
+  elif [ "$server_marker" -eq 1 ]; then
+    echo "agy provider/server error — treat as failure" | tee -a "$log"
+  elif [ "$empty_body" -eq 1 ]; then
+    echo "agy returned empty output — treat as failure" | tee -a "$log"
+  fi
+  if [ "$quota_marker" -eq 1 ] || [ "$server_marker" -eq 1 ] || [ "$empty_body" -eq 1 ]; then
     [ "$rc" -eq 0 ] && rc=42
   fi
   [ -s "$log" ] && rm -f "$stdout_file" "$stderr_file"

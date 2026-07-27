@@ -7,6 +7,8 @@ allowed-tools: Bash(bash:*)
 
 Forward the user's request to `agy` directly — do not inspect the repo, answer the request yourself, or draft any answer.
 
+Any nonzero exit, empty reply, quota, timeout, or provider/server error is terminal plugin output: report it to the caller/lead and stop. Never perform or retry the requested work in Claude.
+
 Launch this single background Bash call:
 
 ```typescript
