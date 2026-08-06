@@ -126,11 +126,17 @@ cmd_prompt() {
   # Project isolation: run under OUR OWN pinned agy project — never the globally
   # most-recent one, which may belong to an unrelated repo (that cross-project bleed
   # is what makes agy wander into another workspace's task backlog and time out).
-  # First run creates a fresh project (--new-project) and we remember its id; every
-  # later run resumes ONLY that project (--project <id>). Continuity stays inside this
-  # plugin's own agent; foreign projects can never leak in.
+  # The pinned project is keyed PER REPO ROOT (not one global id): a project's
+  # WorkspaceURIs is fixed at --new-project time to the cwd agy was launched from, so
+  # a single shared project can only ever be bound to one repo's workspace — every
+  # other repo reusing it could answer/plan but never actually apply edits there.
+  # First run for a given repo creates a fresh project (--new-project) and we
+  # remember its id under a hash of that repo's root; every later run from the same
+  # repo resumes ONLY that project (--project <id>). This is a one-way move: the old
+  # single global $STATE_DIR/project-id is left in place but never read again.
   local brain_dir="$HOME/.gemini/antigravity-cli/brain"
-  local project_file="$STATE_DIR/project-id"
+  local repo_root; repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  local project_file="$STATE_DIR/project-id-$(printf '%s' "$repo_root" | shasum | cut -c1-16)"
   local -a proj_args=()
   local before_dirs="" used_new=0
   if [ -s "$project_file" ]; then
@@ -173,11 +179,17 @@ cmd_prompt() {
     echo "[agy-companion: HARD TIMEOUT after ${agy_timeout}s — agy hung and was killed. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
   fi
 
-  local quota_marker=0 server_marker=0 empty_body=0 reset=""
+  local quota_marker=0 server_marker=0 empty_body=0 print_timeout_marker=0 reset=""
   grep -Eqi 'RESOURCE_EXHAUSTED|HTTP[^0-9]*429' "$stderr_file" "$stdout_file" && quota_marker=1
   grep -Eqi 'HTTP[^0-9]*5[0-9][0-9]|internal server error|service unavailable|server unavailable|server error|network error' "$stderr_file" "$stdout_file" && server_marker=1
   if [ "$rc" -eq 0 ] && ! grep -q '[^[:space:]]' "$stdout_file"; then
     empty_body=1
+  fi
+  if [ "$rc" -eq 1 ] && grep -Eqi 'timeout waiting for response' "$stderr_file" "$stdout_file"; then
+    print_timeout_marker=1
+  fi
+  if [ "$print_timeout_marker" -eq 1 ]; then
+    echo "[agy-companion: agy's OWN internal --print-timeout fired (distinct from this script's outer AGY_TIMEOUT/HARD-TIMEOUT watchdog, which would report rc 124). If this recurs, first check that this repo has its own keyed agy project: $project_file — a stale/foreign project binding is a known cause of agy getting stuck and hitting its internal deadline.]" | tee -a "$log"
   fi
   if [ "$quota_marker" -eq 1 ]; then
     reset="$(sed -nE -e 's/.*[Rr]esets? (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' -e 's/.*[Rr]etry (in|after)[[:space:]]+([0-9][^,;.]*).*/\2/p' "$stderr_file" "$stdout_file" | head -1)"
