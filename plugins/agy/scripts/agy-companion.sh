@@ -85,10 +85,26 @@ cmd_prompt() {
     return 1
   fi
 
-  # Optional leading `--model <name>`; env AGY_MODEL is the fallback.
-  if [ "${1:-}" = "--model" ] && [ -n "${2:-}" ]; then
-    AGY_MODEL="$2"
-  fi
+  # Parse prompt options: --model <name>, --new / -n (force new session), --continue / -c (continue session)
+  local force_new=0
+  local -a model_args=()
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --model)
+        if [ -n "${2:-}" ]; then AGY_MODEL="$2"; shift 2; else shift; fi
+        ;;
+      -n|--new|--new-session)
+        force_new=1; shift
+        ;;
+      -c|--continue)
+        force_new=0; shift
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
 
   local prompt
   prompt="$(cat)"
@@ -120,70 +136,43 @@ cmd_prompt() {
       ;;
   esac
 
-  local -a model_args=()
   [ -n "${AGY_MODEL:-}" ] && model_args=(--model "$AGY_MODEL")
 
-  # Project isolation: run under OUR OWN pinned agy project — never the globally
-  # most-recent one, which may belong to an unrelated repo (that cross-project bleed
-  # is what makes agy wander into another workspace's task backlog and time out).
-  # The pinned project is keyed PER REPO ROOT (not one global id): a project's
-  # WorkspaceURIs is fixed at --new-project time to the cwd agy was launched from, so
-  # a single shared project can only ever be bound to one repo's workspace — every
-  # other repo reusing it could answer/plan but never actually apply edits there.
-  # First run for a given repo creates a fresh project (--new-project) and we
-  # remember its id under a hash of that repo's root; every later run from the same
-  # repo resumes ONLY that project (--project <id>). This is a one-way move: the old
-  # single global $STATE_DIR/project-id is left in place but never read again.
+  # Project isolation & conversation continuity:
+  # Maintain a project ID and continue the ongoing session by default so consecutive
+  # prompts talk back-and-forth interactively within the same workspace context.
   local brain_dir="$HOME/.gemini/antigravity-cli/brain"
   local repo_root; repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
   local project_file="$STATE_DIR/project-id-$(printf '%s' "$repo_root" | shasum | cut -c1-16)"
   local -a proj_args=()
   local before_dirs="" used_new=0
-  if [ -s "$project_file" ]; then
-    proj_args=(--project "$(cat "$project_file")")
+  if [ -s "$project_file" ] && [ "$force_new" -eq 0 ]; then
+    proj_args=(--project "$(cat "$project_file")" --continue)
   else
     proj_args=(--new-project); used_new=1
     before_dirs="$(ls -1d "$brain_dir"/*/ 2>/dev/null | sort)"
   fi
 
   local start end duration rc stdout_file stderr_file
-  # Hard watchdog (pure bash — no coreutils/timeout needed): agy print mode can WEDGE —
-  # a tool-permission review it can't answer non-interactively, or a long/stuck spawned
-  # command (e.g. a build) — and its own --print-timeout does NOT bound those, so a job can
-  # hang indefinitely (seen: 10+ min). Run agy in the background with output tee'd to the
-  # log+stdout via process substitution (so $! is agy's REAL pid), and a sleeper that
-  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds. The outer watchdog
-  # must stay above agy's own --print-timeout, or it kills jobs the inner deadline
-  # would have reported cleanly.
-  #
-  # A fixed wall-clock deadline is the wrong instrument: it kills long-but-healthy work
-  # and waits out a wedge just the same. The old 4m inner / 5m outer pair killed a job
-  # at 247s that had written nothing, while healthy jobs finished at 170s and 254s —
-  # indistinguishable by duration alone.
-  #
-  # So agy runs with --output-format stream-json, which emits an event per step, and the
-  # watchdog measures SILENCE instead: it kills only after AGY_IDLE_TIMEOUT seconds with
-  # no new output. AGY_TIMEOUT remains an absolute backstop for a job that keeps talking
-  # forever. AGY_PRINT_TIMEOUT stays high because idleness, not duration, is the signal.
   local agy_print_timeout="${AGY_PRINT_TIMEOUT:-30m}"
-  local agy_idle_timeout="${AGY_IDLE_TIMEOUT:-240}"
+  local agy_idle_timeout="${AGY_IDLE_TIMEOUT:-300}"
   local agy_timeout="${AGY_TIMEOUT:-1800}"
   stdout_file="$JOBS_DIR/$id.stdout"
   stderr_file="$JOBS_DIR/$id.stderr"
   start="$(date +%s)"
-  # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
-  # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout "$agy_print_timeout" --output-format stream-json "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
+
+  # Run agy with text output tee'd live to stdout & log for real-time interactive streaming.
+  "$bin" --print-timeout "$agy_print_timeout" --output-format text "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file") 2> >(tee -a "$log" "$stderr_file" >&2) &
   local agy_pid=$!
   ( local waited=0 idle=0 last=0 now
     while kill -0 "$agy_pid" 2>/dev/null; do
-      sleep 10
-      waited=$((waited + 10))
+      sleep 5
+      waited=$((waited + 5))
       now=$(( $(wc -c < "$stdout_file" 2>/dev/null || echo 0) + $(wc -c < "$stderr_file" 2>/dev/null || echo 0) ))
-      if [ "$now" -ne "$last" ]; then idle=0; last=$now; else idle=$((idle + 10)); fi
+      if [ "$now" -ne "$last" ]; then idle=0; last=$now; else idle=$((idle + 5)); fi
       if [ "$idle" -ge "$agy_idle_timeout" ] || [ "$waited" -ge "$agy_timeout" ]; then
         kill -TERM "$agy_pid" 2>/dev/null; pkill -TERM -P "$agy_pid" 2>/dev/null
-        sleep 5
+        sleep 3
         kill -KILL "$agy_pid" 2>/dev/null; pkill -KILL -P "$agy_pid" 2>/dev/null
         break
       fi
@@ -193,20 +182,10 @@ cmd_prompt() {
   end="$(date +%s)"
   duration=$((end - start))
   sleep 1
-  # stream-json carries one JSON event per line; the caller wants the final answer, not
-  # the transcript. Fall back to the raw stream if the result event never arrived.
-  local final_text=""
-  if [ -s "$stdout_file" ] && command -v jq >/dev/null 2>&1; then
-    final_text="$(jq -rs 'map(select(.event == "result") | .result.response // empty) | last // empty' "$stdout_file" 2>/dev/null)"
-  fi
-  if [ -n "$final_text" ]; then
-    printf '%s\n' "$final_text"
-  else
-    [ -s "$stdout_file" ] && cat "$stdout_file"
-  fi
+
   if [ "$rc" -eq 143 ] || [ "$rc" -eq 137 ]; then
     rc=124
-    echo "[agy-companion: killed by the watchdog — no output for ${agy_idle_timeout}s, or past the ${agy_timeout}s absolute cap. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
+    echo "[agy-companion: killed by watchdog — no output for ${agy_idle_timeout}s, or past ${agy_timeout}s absolute cap.]" | tee -a "$log"
   fi
 
   local quota_marker=0 server_marker=0 empty_body=0 print_timeout_marker=0 reset=""
