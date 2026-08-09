@@ -152,15 +152,23 @@ cmd_prompt() {
   # command (e.g. a build) — and its own --print-timeout does NOT bound those, so a job can
   # hang indefinitely (seen: 10+ min). Run agy in the background with output tee'd to the
   # log+stdout via process substitution (so $! is agy's REAL pid), and a sleeper that
-  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds (default 300 = 5m,
-  # a backstop above agy's internal 4m wait).
-  local agy_timeout="${AGY_TIMEOUT:-300}"
+  # SIGTERM/SIGKILLs agy + its children after AGY_TIMEOUT seconds. The outer watchdog
+  # must stay above agy's own --print-timeout, or it kills jobs the inner deadline
+  # would have reported cleanly.
+  #
+  # The old 4m inner / 5m outer pair was under what a real multi-file edit takes:
+  # observed jobs completed at 170s and 254s, and a third hit the inner deadline at
+  # 247s having written nothing. 12m inner / 13m outer keeps the wedge protection while
+  # letting substantial work land. Override with AGY_PRINT_TIMEOUT (an agy duration
+  # string) and AGY_TIMEOUT (seconds).
+  local agy_print_timeout="${AGY_PRINT_TIMEOUT:-12m}"
+  local agy_timeout="${AGY_TIMEOUT:-780}"
   stdout_file="$JOBS_DIR/$id.stdout"
   stderr_file="$JOBS_DIR/$id.stderr"
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout 4m "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
+  "$bin" --print-timeout "$agy_print_timeout" "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
   local agy_pid=$!
   ( sleep "$agy_timeout"
     if kill -0 "$agy_pid" 2>/dev/null; then
