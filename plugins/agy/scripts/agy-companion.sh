@@ -156,35 +156,57 @@ cmd_prompt() {
   # must stay above agy's own --print-timeout, or it kills jobs the inner deadline
   # would have reported cleanly.
   #
-  # The old 4m inner / 5m outer pair was under what a real multi-file edit takes:
-  # observed jobs completed at 170s and 254s, and a third hit the inner deadline at
-  # 247s having written nothing. 12m inner / 13m outer keeps the wedge protection while
-  # letting substantial work land. Override with AGY_PRINT_TIMEOUT (an agy duration
-  # string) and AGY_TIMEOUT (seconds).
-  local agy_print_timeout="${AGY_PRINT_TIMEOUT:-12m}"
-  local agy_timeout="${AGY_TIMEOUT:-780}"
+  # A fixed wall-clock deadline is the wrong instrument: it kills long-but-healthy work
+  # and waits out a wedge just the same. The old 4m inner / 5m outer pair killed a job
+  # at 247s that had written nothing, while healthy jobs finished at 170s and 254s —
+  # indistinguishable by duration alone.
+  #
+  # So agy runs with --output-format stream-json, which emits an event per step, and the
+  # watchdog measures SILENCE instead: it kills only after AGY_IDLE_TIMEOUT seconds with
+  # no new output. AGY_TIMEOUT remains an absolute backstop for a job that keeps talking
+  # forever. AGY_PRINT_TIMEOUT stays high because idleness, not duration, is the signal.
+  local agy_print_timeout="${AGY_PRINT_TIMEOUT:-30m}"
+  local agy_idle_timeout="${AGY_IDLE_TIMEOUT:-240}"
+  local agy_timeout="${AGY_TIMEOUT:-1800}"
   stdout_file="$JOBS_DIR/$id.stdout"
   stderr_file="$JOBS_DIR/$id.stderr"
   start="$(date +%s)"
   # NOTE: -p/--print consumes the NEXT token as the prompt, so the prompt MUST come
   # immediately after -p, with every other flag placed before it.
-  "$bin" --print-timeout "$agy_print_timeout" "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
+  "$bin" --print-timeout "$agy_print_timeout" --output-format stream-json "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file" >/dev/null) 2> >(tee -a "$log" "$stderr_file" >&2) &
   local agy_pid=$!
-  ( sleep "$agy_timeout"
-    if kill -0 "$agy_pid" 2>/dev/null; then
-      kill -TERM "$agy_pid" 2>/dev/null; pkill -TERM -P "$agy_pid" 2>/dev/null
-      sleep 5
-      kill -KILL "$agy_pid" 2>/dev/null; pkill -KILL -P "$agy_pid" 2>/dev/null
-    fi ) & local wd_pid=$!
+  ( local waited=0 idle=0 last=0 now
+    while kill -0 "$agy_pid" 2>/dev/null; do
+      sleep 10
+      waited=$((waited + 10))
+      now=$(( $(wc -c < "$stdout_file" 2>/dev/null || echo 0) + $(wc -c < "$stderr_file" 2>/dev/null || echo 0) ))
+      if [ "$now" -ne "$last" ]; then idle=0; last=$now; else idle=$((idle + 10)); fi
+      if [ "$idle" -ge "$agy_idle_timeout" ] || [ "$waited" -ge "$agy_timeout" ]; then
+        kill -TERM "$agy_pid" 2>/dev/null; pkill -TERM -P "$agy_pid" 2>/dev/null
+        sleep 5
+        kill -KILL "$agy_pid" 2>/dev/null; pkill -KILL -P "$agy_pid" 2>/dev/null
+        break
+      fi
+    done ) & local wd_pid=$!
   wait "$agy_pid" 2>/dev/null; rc=$?
   kill "$wd_pid" 2>/dev/null; wait "$wd_pid" 2>/dev/null
   end="$(date +%s)"
   duration=$((end - start))
   sleep 1
-  [ -s "$stdout_file" ] && cat "$stdout_file"
+  # stream-json carries one JSON event per line; the caller wants the final answer, not
+  # the transcript. Fall back to the raw stream if the result event never arrived.
+  local final_text=""
+  if [ -s "$stdout_file" ] && command -v jq >/dev/null 2>&1; then
+    final_text="$(jq -rs 'map(select(.event == "result") | .result.response // empty) | last // empty' "$stdout_file" 2>/dev/null)"
+  fi
+  if [ -n "$final_text" ]; then
+    printf '%s\n' "$final_text"
+  else
+    [ -s "$stdout_file" ] && cat "$stdout_file"
+  fi
   if [ "$rc" -eq 143 ] || [ "$rc" -eq 137 ]; then
     rc=124
-    echo "[agy-companion: HARD TIMEOUT after ${agy_timeout}s — agy hung and was killed. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
+    echo "[agy-companion: killed by the watchdog — no output for ${agy_idle_timeout}s, or past the ${agy_timeout}s absolute cap. Print mode can't answer tool-permission reviews and doesn't bound stuck commands: set toolPermission=always-proceed for unattended writes, and keep agy tasks to edits (run long builds separately).]" | tee -a "$log"
   fi
 
   local quota_marker=0 server_marker=0 empty_body=0 print_timeout_marker=0 reset=""
