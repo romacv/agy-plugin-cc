@@ -9,12 +9,13 @@ A small Claude Code plugin that lets you drive the **Antigravity CLI (`agy`)** �
 | Command | What it does |
 |---|---|
 | `/agy:setup` | Checks that the `agy` binary is installed and authenticated; reports the default model. |
-| `/agy:prompt <request>` | Forwards your request straight to `agy -p` (non-interactive) as a backgrounded run, and logs it. |
+| `/agy:prompt <request>` | Forwards request to `agy` — background by default (spawns subagent), `--wait` for foreground streaming. |
 | `/agy:review <diff-path-or-files>` | Forwards a read-only adversarial review to `agy` as a backgrounded run; it reports defects or `PASS`. |
 | `/agy:status [<job-id>\|--all]` | Lists recent `agy` runs (id, time, exit, duration, prompt); pass a `<job-id>` to print that run's full log. |
 | `/agy:result <job-id>` | Prints a finished run's stored reply once `/agy:prompt` or `/agy:review` completes in the background. |
+| `/agy:cancel [<job-id>]` | Cancels an active (or named) background agy job. |
 
-`/agy:prompt` and `/agy:review` call the companion script directly via a backgrounded `Bash` call — there is no LLM subagent hop in between, so forwarding is deterministic and can't be skipped.
+`/agy:prompt` supports `--wait` (foreground streaming), `--fresh` (new project), `--resume` (continue pinned project), and `--model <name>`.
 
 ## Layout
 
@@ -28,8 +29,9 @@ agy-plugin-cc/
     │   ├── prompt.md                   # /agy:prompt
     │   ├── review.md                   # /agy:review
     │   ├── status.md                   # /agy:status
-    │   └── result.md                   # /agy:result
-    └── scripts/agy-companion.sh        # setup | prompt | status | result helper
+    │   ├── result.md                   # /agy:result
+    │   └── cancel.md                   # /agy:cancel
+    └── scripts/agy-companion.sh        # setup | prompt | status | result | cancel helper
 ```
 
 ## Install

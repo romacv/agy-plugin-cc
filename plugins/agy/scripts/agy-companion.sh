@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # agy-companion.sh — thin helper for the agy Claude Code plugin.
 # Subcommands:
-#   setup                    Check the agy binary is installed & authed; report tool-permission.
-#   prompt [--model <name>]  Read a request on stdin, run `agy -p`, log it, relay output.
-#   status [<job-id>|--all]  List recent agy runs, or print one run's full log by id.
-#   result <job-id>          Print a finished run's stored reply (body only) and exit its status.
+#   setup                                   Check the agy binary is installed & authed; report tool-permission.
+#   prompt [--fresh|--resume] [--model <n>] Read a request on stdin, run `agy -p`, log it, relay output.
+#   status [<job-id>|--all]                 List recent agy runs, or print one run's full log by id.
+#   result <job-id>                         Print a finished run's stored reply (body only) and exit its status.
+#   cancel [<job-id>]                       Kill the active (or named) agy job.
 #
 # Env:
 #   AGY_BIN            Override the agy binary (default: agy on PATH, then common paths).
@@ -85,7 +86,7 @@ cmd_prompt() {
     return 1
   fi
 
-  # Parse prompt options: --model <name>, --new / -n (force new session), --continue / -c (continue session)
+  # Parse prompt options: --model <name>, --fresh (force new session), --resume (continue session)
   local force_new=0
   local -a model_args=()
 
@@ -94,10 +95,10 @@ cmd_prompt() {
       --model)
         if [ -n "${2:-}" ]; then AGY_MODEL="$2"; shift 2; else shift; fi
         ;;
-      -n|--new|--new-session)
+      -n|--new|--new-session|--fresh)
         force_new=1; shift
         ;;
-      -c|--continue)
+      --resume|-c|--continue)
         force_new=0; shift
         ;;
       *)
@@ -164,6 +165,7 @@ cmd_prompt() {
   # Run agy with text output tee'd live to stdout & log for real-time interactive streaming.
   "$bin" --print-timeout "$agy_print_timeout" --output-format text "${proj_args[@]}" "${model_args[@]}" -p "$prompt" > >(tee -a "$log" "$stdout_file") 2> >(tee -a "$log" "$stderr_file" >&2) &
   local agy_pid=$!
+  echo "# pid: $agy_pid" >> "$log"
   ( local waited=0 idle=0 last=0 now
     while kill -0 "$agy_pid" 2>/dev/null; do
       sleep 5
@@ -314,10 +316,62 @@ cmd_result() {
   [ "$exitc" = "0" ]
 }
 
+cmd_cancel() {
+  local want_id="${1:-}"
+  if [ -z "$want_id" ]; then
+    # Try the most-recent running job.
+    local logs f mtime now age
+    # shellcheck disable=SC2012
+    logs="$(ls -1t "$JOBS_DIR"/*.log 2>/dev/null || true)"
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      if ! grep -q '^# exit:' "$f"; then
+        mtime="$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)"
+        now="$(date +%s)"; age=$(( (now - mtime) / 60 ))
+        if [ "$age" -lt 6 ]; then
+          want_id="$(basename "$f" .log)"
+          break
+        fi
+      fi
+    done <<< "$logs"
+    if [ -z "$want_id" ]; then
+      echo "No active job found. Pass a job id: /agy:cancel <job-id>"
+      return 1
+    fi
+  fi
+
+  local jf="$JOBS_DIR/$want_id.log"
+  if [ ! -f "$jf" ]; then echo "No such job: $want_id"; return 1; fi
+  if grep -q '^# exit:' "$jf"; then
+    echo "Job $want_id has already finished — nothing to cancel."
+    return 0
+  fi
+
+  # Find the agy child PID recorded in the log (the process group leader).
+  local agy_pid
+  agy_pid="$(grep -m1 '^# pid:' "$jf" 2>/dev/null | cut -d' ' -f3- || true)"
+  if [ -n "$agy_pid" ] && kill -0 "$agy_pid" 2>/dev/null; then
+    kill -TERM "$agy_pid" 2>/dev/null
+    pkill -TERM -P "$agy_pid" 2>/dev/null
+    sleep 2
+    kill -KILL "$agy_pid" 2>/dev/null
+    pkill -KILL -P "$agy_pid" 2>/dev/null
+    {
+      echo "# ---"
+      echo "# exit: cancelled"
+      echo "# duration: -"
+    } >> "$jf"
+    echo "Cancelled job $want_id (pid $agy_pid)."
+  else
+    echo "Job $want_id appears running but no live pid found — it may have already exited."
+  fi
+}
+
 case "${1:-}" in
   setup)  shift; cmd_setup  "$@" ;;
   prompt) shift; cmd_prompt "$@" ;;
   status) shift; cmd_status "$@" ;;
   result) shift; cmd_result "$@" ;;
-  *) echo "usage: agy-companion.sh {setup|prompt [--model <name>]|status [<job-id>|--all]|result <job-id>}"; exit 64 ;;
+  cancel) shift; cmd_cancel "$@" ;;
+  *) echo "usage: agy-companion.sh {setup|prompt [--model <name>] [--fresh|--resume]|status [<job-id>|--all]|result <job-id>|cancel [<job-id>]}"; exit 64 ;;
 esac
