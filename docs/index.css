@@ -307,8 +307,76 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   padding: 10px 0;
+}
+
+.terminal-flow-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 560px;
+  gap: 0;
+  margin: -2px 0;
+  z-index: 2;
+}
+
+.flow-line {
+  width: 2px;
+  height: 48px;
+  background: linear-gradient(to bottom, #e05b3d, #38bdf8);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-line::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.7), transparent);
+  animation: flowShine 1s linear infinite;
+}
+
+@keyframes flowShine {
+  0%   { top: -40%; }
+  100% { top: 110%; }
+}
+
+.flow-arrowhead {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 10px solid #38bdf8;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.7));
+  animation: arrowPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50%       { transform: translateY(4px); opacity: 1; }
+}
+
+.agy-execution-panel {
+  background-color: #1a1c1e;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3), 0 0 30px rgba(56, 189, 248, 0.08);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  position: relative;
+}
+
+.agy-execution-panel:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.4), 0 0 40px rgba(56, 189, 248, 0.15);
 }
 
 .terminal-mock {
@@ -316,7 +384,7 @@ code {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   width: 100%;
-  max-width: 520px;
+  max-width: 560px;
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
@@ -405,6 +473,60 @@ code {
 
 .term-line {
   white-space: pre-wrap;
+}
+
+.terminal-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 4px 0 8px;
+  padding: 4px 0;
+}
+
+.banner-logo {
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  line-height: 1.15;
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.term-claude-logo {
+  color: #e05b3d;
+  font-weight: bold;
+}
+
+.term-agy-logo {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.banner-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  color: #dfe1e5;
+  min-width: 0;
+}
+
+.banner-title {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.banner-meta {
+  color: #c9cdd4;
+}
+
+.banner-path {
+  color: #9ba0a5;
 }
 
 .term-prompt {

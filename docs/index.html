@@ -91,7 +91,7 @@
         
         <!-- Showcase Box -->
         <div class="hero-showcase">
-            <!-- Terminal 1: Direct Inline Session -->
+            <!-- Terminal 1: Direct Session -->
             <div class="terminal-mock">
                 <div class="terminal-mock-header">
                     <div class="terminal-dots">
@@ -99,33 +99,56 @@
                         <span class="term-dot yellow"></span>
                         <span class="term-dot green"></span>
                     </div>
-                    <span class="terminal-mock-title">Direct Inline Session — Claude Code</span>
+                    <span class="terminal-mock-title">Claude Code — ~/Dev/my-app</span>
                 </div>
                 <div class="terminal-mock-body">
-                    <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize index.html" --inline</div>
+                    <div class="term-line"><span class="term-prompt">➜  ~</span> cd dev/my-app && claude</div>
+                    <div class="terminal-banner">
+                        <pre class="banner-logo term-claude-logo"> ▐▛███▛█
+▝▜██████▀
+  ▝▝ ▝▝  </pre>
+                        <div class="banner-details">
+                            <div class="banner-title">Claude Code v2.1.267</div>
+                            <div class="banner-meta">Opus 5 (1M context) with medium effort · Claude Max</div>
+                            <div class="banner-path">~/Dev/my-app</div>
+                        </div>
+                    </div>
+                    <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize database queries"</div>
                     <div class="term-line comment"># Forwarding request to local agy CLI...</div>
-                    <div class="term-line success-line">✔ index.html optimized successfully</div>
-                    <div class="term-line comment">[agy job 20260707-132359-32451 · exit 0 · 12s]</div>
+                    <div class="term-line success-line">✔ Database queries optimized across 3 files</div>
+                    <div class="term-line comment">[agy job 20260910-155230-14201 · exit 0 · 14s]</div>
                 </div>
             </div>
 
-            <!-- Terminal 2: Background Subagent Session -->
-            <div class="terminal-mock subagent-term">
-                <div class="terminal-mock-header">
-                    <div class="terminal-dots">
-                        <span class="term-dot red"></span>
-                        <span class="term-dot yellow"></span>
-                        <span class="term-dot green"></span>
-                    </div>
-                    <span class="terminal-mock-title">Background Subagent Session — Claude Code</span>
-                </div>
+            <!-- Animated Delegation Arrow -->
+            <div class="terminal-flow-arrow">
+                <div class="flow-line"></div>
+                <div class="flow-arrowhead"></div>
+            </div>
+
+            <!-- Antigravity Execution (Frameless) -->
+            <div class="agy-execution-panel">
                 <div class="terminal-mock-body">
-                    <div class="term-line"><span class="term-prompt">claude &gt;</span> /agy:prompt "optimize index.html"</div>
-                    <div class="term-line loading-line"><span class="term-spinner">⠋</span> Spawning background subagent agy:agy-prompt...</div>
+                    <div class="terminal-banner">
+                        <pre class="banner-logo term-agy-logo">      ▄▀▀▄
+     ▀▀▀▀▀▀
+    ▀▀▀▀▀▀▀▀
+   ▄▀▀    ▀▀▄
+  ▄▀▀      ▀▀▄</pre>
+                        <div class="banner-details">
+                            <div class="banner-title">Antigravity CLI 1.2.0</div>
+                            <div class="banner-meta">dev@example.com (Google AI Pro)</div>
+                            <div class="banner-meta">Gemini 3.8 Flash (Medium)</div>
+                            <div class="banner-path">~/.gemini</div>
+                        </div>
+                    </div>
+                    <div class="term-line prompt-line"><span class="term-prompt">agy &gt;</span> "optimize database queries"</div>
+                    <div class="term-line loading-line"><span class="term-spinner">⠋</span> Refactoring database queries across workspace...</div>
+                    <div class="term-line success-line">✔ 3 files modified (queries refactored, indexes optimized)</div>
                 </div>
                 <div class="terminal-mock-status">
-                    <span class="status-agent"><span class="status-dot-pulse">●</span> agy-prompt (running)</span>
-                    <span class="status-metrics">1.4k tokens</span>
+                    <span class="status-agent"><span class="status-dot-pulse">●</span> agy (completed)</span>
+                    <span class="status-metrics">14s · 0 reasoning tokens</span>
                 </div>
             </div>
         </div>
