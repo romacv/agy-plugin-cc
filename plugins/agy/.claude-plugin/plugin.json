@@ -1,6 +1,6 @@
 {
   "name": "agy",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Use the Antigravity (agy) CLI from Claude Code: /agy:setup, /agy:prompt, /agy:review, /agy:status, /agy:result, /agy:cancel.",
   "author": {
     "name": "romacv"
