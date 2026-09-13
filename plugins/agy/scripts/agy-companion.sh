@@ -108,7 +108,11 @@ cmd_prompt() {
   done
 
   local prompt
-  prompt="$(cat)"
+  if [ $# -gt 0 ]; then
+    prompt="$*"
+  else
+    prompt="$(cat)"
+  fi
   if [ -z "${prompt//[[:space:]]/}" ]; then
     echo "No prompt provided. Usage: /agy:prompt <your request>"
     return 1
